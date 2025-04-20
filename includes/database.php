@@ -6,30 +6,39 @@
  * for interacting with PostgreSQL database
  */
 
-// PostgreSQL connection settings from environment variables
-$db_host = getenv('PGHOST');
-$db_port = getenv('PGPORT');
-$db_name = getenv('PGDATABASE');
-$db_user = getenv('PGUSER');
-$db_password = getenv('PGPASSWORD');
-
 /**
  * Get a database connection
  */
 function getDbConnection() {
-    global $db_host, $db_port, $db_name, $db_user, $db_password;
+    // Get the DATABASE_URL from environment
+    $db_url = getenv('DATABASE_URL');
     
-    $dsn = "pgsql:host=$db_host;port=$db_port;dbname=$db_name;";
+    if (!$db_url) {
+        error_log('DATABASE_URL environment variable is not set');
+        return null;
+    }
     
     try {
-        $pdo = new PDO($dsn, $db_user, $db_password, [
+        // Parse the DATABASE_URL to extract components
+        $url = parse_url($db_url);
+        
+        $host = $url['host'];
+        $port = $url['port'] ?? 5432;
+        $dbname = ltrim($url['path'], '/');
+        $user = $url['user'];
+        $password = $url['pass'];
+        
+        // Build the DSN for PostgreSQL
+        $dsn = "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require";
+        
+        $pdo = new PDO($dsn, $user, $password, [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false
         ]);
+        
         return $pdo;
     } catch (PDOException $e) {
-        // For now, log error and return null
         error_log('Database connection error: ' . $e->getMessage());
         return null;
     }

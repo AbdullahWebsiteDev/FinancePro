@@ -28,7 +28,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "php -S 0.0.0.0:5000"
+args = "export PGUSER=\"$PGUSER\" PGPASSWORD=\"$PGPASSWORD\" PGHOST=\"$PGHOST\" PGPORT=\"$PGPORT\" PGDATABASE=\"$PGDATABASE\" DATABASE_URL=\"$DATABASE_URL\" && php -S 0.0.0.0:5000"
 waitForPort = 5000
 
 [deployment]
