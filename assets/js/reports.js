@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupTabs() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
+    const isDarkMode = document.documentElement.classList.contains('dark');
     
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -23,8 +24,8 @@ function setupTabs() {
             
             // Deactivate all tabs
             tabButtons.forEach(btn => {
-                btn.classList.remove('active', 'border-indigo-500', 'text-indigo-600');
-                btn.classList.add('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+                btn.classList.remove('active', 'border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
+                btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-300', 'hover:text-gray-700', 'dark:hover:text-gray-100', 'hover:border-gray-300', 'dark:hover:border-gray-400');
             });
             
             // Hide all tab contents
@@ -34,8 +35,8 @@ function setupTabs() {
             });
             
             // Activate the selected tab
-            this.classList.add('active', 'border-indigo-500', 'text-indigo-600');
-            this.classList.remove('border-transparent', 'text-gray-500', 'hover:text-gray-700', 'hover:border-gray-300');
+            this.classList.add('active', 'border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
+            this.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-300', 'hover:text-gray-700', 'dark:hover:text-gray-100', 'hover:border-gray-300', 'dark:hover:border-gray-400');
             
             // Show the selected tab content
             document.getElementById(targetId).classList.remove('hidden');
@@ -48,14 +49,6 @@ function setupTabs() {
  * Setup export buttons functionality
  */
 function setupExportButtons() {
-    // Budget export button
-    const exportBudgetBtn = document.getElementById('exportBudgetBtn');
-    if (exportBudgetBtn) {
-        exportBudgetBtn.addEventListener('click', function() {
-            generatePDFReport('budget');
-        });
-    }
-    
     // Expense export button
     const exportExpenseBtn = document.getElementById('exportExpenseBtn');
     if (exportExpenseBtn) {

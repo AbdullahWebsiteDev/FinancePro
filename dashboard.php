@@ -17,7 +17,6 @@ $todayExpense = getTodayExpense();
 
 // Get recent transactions for the dashboard
 $recentExpenses = getRecentExpenses(5);
-$recentBudgets = getRecentBudgets(5);
 
 // Page title
 $pageTitle = "Dashboard";
@@ -108,25 +107,6 @@ $pageTitle = "Dashboard";
                     </ul>
                 <?php else: ?>
                     <p class="text-sm text-gray-600 dark:text-gray-300">No recent expenses found.</p>
-                <?php endif; ?>
-            </div>
-            
-            <div class="bg-gray-50 dark:bg-gray-600 p-4 rounded-lg">
-                <h4 class="font-medium text-gray-700 dark:text-gray-200 mb-2">Recent Budgets</h4>
-                <?php if (count($recentBudgets) > 0): ?>
-                    <ul class="divide-y divide-gray-200 dark:divide-gray-500">
-                        <?php foreach ($recentBudgets as $budget): ?>
-                        <li class="py-2 flex justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-800 dark:text-gray-200"><?php echo htmlspecialchars($budget['name']); ?></p>
-                                <p class="text-xs text-gray-500 dark:text-gray-400"><?php echo date('M d, Y', strtotime($budget['date'])); ?></p>
-                            </div>
-                            <p class="text-sm font-semibold text-blue-500 dark:text-blue-400">+$<?php echo number_format($budget['amount'], 2); ?></p>
-                        </li>
-                        <?php endforeach; ?>
-                    </ul>
-                <?php else: ?>
-                    <p class="text-sm text-gray-600 dark:text-gray-300">No recent budgets found.</p>
                 <?php endif; ?>
             </div>
         </div>
