@@ -15,10 +15,15 @@ if (!function_exists('initializeSessionStorage')) {
  * @return array Result of login attempt with success flag and message
  */
 function login($username, $password) {
-    $users = $_SESSION['db_users'];
-    
-    foreach ($users as $user) {
-        if ($user['username'] === $username) {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
+        $stmt->bindParam(':username', $username);
+        $stmt->execute();
+        
+        $user = $stmt->fetch();
+        
+        if ($user) {
             if (password_verify($password, $user['password'])) {
                 return [
                     'success' => true,
@@ -31,12 +36,18 @@ function login($username, $password) {
                 'message' => 'Invalid password'
             ];
         }
+        
+        return [
+            'success' => false,
+            'message' => 'Username not found'
+        ];
+    } catch (PDOException $e) {
+        error_log('Error during login: ' . $e->getMessage());
+        return [
+            'success' => false,
+            'message' => 'Database error occurred'
+        ];
     }
-    
-    return [
-        'success' => false,
-        'message' => 'Username not found'
-    ];
 }
 
 /**
