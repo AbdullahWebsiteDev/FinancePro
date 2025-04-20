@@ -1,22 +1,47 @@
 <?php
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 require_once 'includes/database.php';
 require_once 'includes/auth.php';
 
+// Debug session status
+echo "<!-- Session Debug: " . session_status() . " -->";
+echo "<!-- Session ID: " . session_id() . " -->";
+echo "<!-- Session Data: " . print_r($_SESSION, true) . " -->";
+
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
+    echo "<!-- User not logged in, redirecting to login page -->";
     header("Location: login.php");
     exit();
 }
 
-// Get summary data
-$totalBalance = getTotalBalance();
-$totalExpense = getTotalExpense();
-$totalPettyCash = getTotalPettyCash();
-$todayExpense = getTodayExpense();
+// Debug cookies
+echo "<!-- Cookies: " . print_r($_COOKIE, true) . " -->";
 
-// Get recent transactions for the dashboard
-$recentExpenses = getRecentExpenses(5);
+try {
+    // Get summary data
+    $totalBalance = getTotalBalance();
+    $totalExpense = getTotalExpense();
+    $totalPettyCash = getTotalPettyCash();
+    $todayExpense = getTodayExpense();
+    
+    // Get recent transactions for the dashboard
+    $recentExpenses = getRecentExpenses(5);
+} catch (Exception $e) {
+    // Log the error
+    error_log("Error in dashboard: " . $e->getMessage());
+    
+    // Set default values
+    $totalBalance = 0;
+    $totalExpense = 0;
+    $totalPettyCash = 0;
+    $todayExpense = 0;
+    $recentExpenses = [];
+}
 
 // Page title
 $pageTitle = "Dashboard";
