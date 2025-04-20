@@ -1,26 +1,17 @@
 <?php
-// Enable error reporting for debugging
+// Everything before session_start and any output must be kept together
+// to avoid "headers already sent" errors
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-
 session_start();
 require_once 'includes/database.php';
 require_once 'includes/auth.php';
 
-// Debug session status
-echo "<!-- Session Debug: " . session_status() . " -->";
-echo "<!-- Session ID: " . session_id() . " -->";
-echo "<!-- Session Data: " . print_r($_SESSION, true) . " -->";
-
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    echo "<!-- User not logged in, redirecting to login page -->";
     header("Location: login.php");
     exit();
 }
-
-// Debug cookies
-echo "<!-- Cookies: " . print_r($_COOKIE, true) . " -->";
 
 try {
     // Get summary data

@@ -1,11 +1,8 @@
 <?php
-// Enable error reporting for debugging
+// Everything before session_start and any output must be kept together
+// to avoid "headers already sent" errors
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-
-// Set a test cookie to verify cookie functionality
-setcookie('test_cookie', 'test_value', time() + 3600, '/');
-
 session_start();
 require_once 'includes/database.php';
 require_once 'includes/auth.php';
@@ -31,11 +28,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['user_id'] = $result['user_id'];
             $_SESSION['username'] = $username;
             $_SESSION['role'] = $result['role'];
-            
-            // Debug output
-            echo "<!-- Login successful. Setting session variables -->";
-            echo "<!-- Session ID: " . session_id() . " -->";
-            echo "<!-- Session Data: " . print_r($_SESSION, true) . " -->";
             
             // Save session before redirecting
             session_write_close();
