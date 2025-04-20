@@ -34,43 +34,64 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Finance Dashboard - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {}
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer base {
+            body {
+                @apply transition-colors duration-200;
+            }
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 dark:bg-gray-900">
     <div class="flex items-center justify-center min-h-screen">
         <div class="w-full max-w-md">
-            <div class="bg-white rounded-lg shadow-lg p-8">
+            <div class="relative bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
+                <div class="absolute top-4 right-4">
+                    <button id="darkModeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        <i id="darkModeIcon" class="fas fa-moon"></i>
+                    </button>
+                </div>
+                
                 <div class="text-center mb-8">
-                    <h1 class="text-2xl font-bold text-gray-800">Finance Dashboard</h1>
-                    <p class="text-gray-600">Sign in to access your account</p>
+                    <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Finance Dashboard</h1>
+                    <p class="text-gray-600 dark:text-gray-300">Sign in to access your account</p>
                 </div>
                 
                 <?php if ($error): ?>
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+                <div class="bg-red-100 dark:bg-red-900 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-300 px-4 py-3 rounded relative mb-4" role="alert">
                     <span class="block sm:inline"><?php echo $error; ?></span>
                 </div>
                 <?php endif; ?>
                 
                 <form method="POST" action="login.php" class="space-y-6">
                     <div>
-                        <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                        <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Username</label>
                         <div class="mt-1">
                             <input id="username" name="username" type="text" required 
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         </div>
                     </div>
 
                     <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-200">Password</label>
                         <div class="mt-1">
                             <input id="password" name="password" type="password" required 
-                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded-md shadow-sm placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                         </div>
                     </div>
 
@@ -83,7 +104,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 </form>
                 
                 <div class="mt-6">
-                    <p class="text-center text-sm text-gray-600">
+                    <p class="text-center text-sm text-gray-600 dark:text-gray-300">
                         <span>Demo Credentials:</span><br>
                         <span>Admin: admin / password</span><br>
                         <span>User: user / password</span>
@@ -92,5 +113,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
     </div>
+    
+    <script>
+        // Dark mode toggle functionality
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeIcon = document.getElementById('darkModeIcon');
+        const htmlElement = document.documentElement;
+        
+        // Check for saved theme preference or use system preference
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        
+        // Apply the theme on page load
+        if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+            htmlElement.classList.add('dark');
+            darkModeIcon.classList.remove('fa-moon');
+            darkModeIcon.classList.add('fa-sun');
+        }
+        
+        // Toggle dark mode when button is clicked
+        if (darkModeToggle) {
+            darkModeToggle.addEventListener('click', function() {
+                htmlElement.classList.toggle('dark');
+                
+                // Update icon
+                if (htmlElement.classList.contains('dark')) {
+                    darkModeIcon.classList.remove('fa-moon');
+                    darkModeIcon.classList.add('fa-sun');
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    darkModeIcon.classList.remove('fa-sun');
+                    darkModeIcon.classList.add('fa-moon');
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+        }
+    </script>
 </body>
 </html>
