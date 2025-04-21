@@ -19,7 +19,7 @@ function getDbConnection() {
         $port = 5432;
         $dbname = 'finance_db';
         $user = 'postgres';
-        $password = ''; // Set your PostgreSQL password here
+        $password = 'admin'; // Set your PostgreSQL password here
         
         $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
         try {
