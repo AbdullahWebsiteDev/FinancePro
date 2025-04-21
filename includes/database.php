@@ -381,8 +381,12 @@ function getTotalBalance() {
         $stmt = $pdo->query("SELECT COALESCE(SUM(cost), 0) as total FROM expenses");
         $expenseTotal = $stmt->fetch()['total'];
         
-        // Since we removed budget functionality, we're setting the balance as the negative of expenses
-        return -1 * floatval($expenseTotal);
+        // Get total petty cash
+        $stmt = $pdo->query("SELECT COALESCE(SUM(amount), 0) as total FROM petty_cash");
+        $pettyCashTotal = $stmt->fetch()['total'];
+        
+        // Balance is negative expenses plus petty cash
+        return (-1 * floatval($expenseTotal)) + floatval($pettyCashTotal);
     } catch (PDOException $e) {
         error_log('Error calculating total balance: ' . $e->getMessage());
         return 0;
