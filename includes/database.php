@@ -14,8 +14,25 @@ function getDbConnection() {
     $db_url = getenv('DATABASE_URL');
     
     if (!$db_url) {
-        error_log('DATABASE_URL environment variable is not set');
-        return null;
+        // Local database fallback
+        $host = 'localhost';
+        $port = 5432;
+        $dbname = 'finance_db';
+        $user = 'postgres';
+        $password = 'your_password'; // Replace with your actual password
+        
+        $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
+        try {
+            $pdo = new PDO($dsn, $user, $password, [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false
+            ]);
+            return $pdo;
+        } catch (PDOException $e) {
+            error_log('Local database connection error: ' . $e->getMessage());
+            return null;
+        }
     }
     
     try {
