@@ -22,6 +22,15 @@ function getDbConnection() {
         $password = 'admin'; // Set your PostgreSQL password here
         
         $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
+        
+        // Test if PostgreSQL is running
+        $socket = @fsockopen($host, $port, $errno, $errstr, 5);
+        if (!$socket) {
+            error_log("PostgreSQL server not accessible: $errstr ($errno)");
+            return null;
+        }
+        fclose($socket);
+        
         try {
             $pdo = new PDO($dsn, $user, $password, [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
