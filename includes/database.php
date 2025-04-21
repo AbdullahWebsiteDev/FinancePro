@@ -14,12 +14,12 @@ function getDbConnection() {
     $db_url = getenv('DATABASE_URL');
     
     if (!$db_url) {
-        // Local database fallback
+        // Local database settings
         $host = 'localhost';
         $port = 5432;
         $dbname = 'finance_db';
         $user = 'postgres';
-        $password = 'your_password'; // Replace with your actual password
+        $password = ''; // Set your PostgreSQL password here
         
         $dsn = "pgsql:host={$host};port={$port};dbname={$dbname}";
         try {
