@@ -57,9 +57,9 @@ Chart.Tooltip.positioners.cursor = function(chartElements, coordinates) {
 };
 
 // Common currency formatter for tooltips
-const currencyFormatter = new Intl.NumberFormat('en-US', {
+const currencyFormatter = new Intl.NumberFormat('en-PK', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'PKR',
     minimumFractionDigits: 2
 });
 
@@ -120,7 +120,7 @@ const commonLineChartOptions = {
             ticks: {
                 padding: 10,
                 callback: function(value) {
-                    return '$' + value.toLocaleString();
+                    return '₨' + value.toLocaleString();
                 }
             }
         }
@@ -224,7 +224,7 @@ const commonBarChartOptions = {
             ticks: {
                 padding: 10,
                 callback: function(value) {
-                    return '$' + value.toLocaleString();
+                    return '₨' + value.toLocaleString();
                 }
             }
         }

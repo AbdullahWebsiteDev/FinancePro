@@ -1,179 +1,188 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize tabs
-    setupTabs();
-    
-    // Setup export buttons
-    setupExportButtons();
-    
-    // Initialize success and error alerts
-    initializeAlerts();
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    const exportExpenseBtn = document.getElementById('exportExpenseBtn');
+    const exportPettyCashBtn = document.getElementById('exportPettyCashBtn');
+
+    // Initialize date inputs with current month
+    if (!startDateInput.value) {
+        startDateInput.value = new Date().toISOString().slice(0, 8) + '01';
+    }
+    if (!endDateInput.value) {
+        const lastDay = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0);
+        endDateInput.value = lastDay.toISOString().slice(0, 10);
+    }
+
+    // Add event listeners for date changes
+    startDateInput.addEventListener('change', updateData);
+    endDateInput.addEventListener('change', updateData);
+
+    // Add event listeners for export buttons
+    if (exportExpenseBtn) {
+        exportExpenseBtn.addEventListener('click', () => generatePDFReport('expense'));
+    }
+    if (exportPettyCashBtn) {
+        exportPettyCashBtn.addEventListener('click', () => generatePDFReport('petty-cash'));
+    }
 });
 
-/**
- * Setup tabs functionality
- */
-function setupTabs() {
-    const tabButtons = document.querySelectorAll('.tab-button');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const isDarkMode = document.documentElement.classList.contains('dark');
-    
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            // Get the target tab content ID
-            const targetId = this.id.replace('Tab', 'TabContent');
-            
-            // Deactivate all tabs
-            tabButtons.forEach(btn => {
-                btn.classList.remove('active', 'border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
-                btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-300', 'hover:text-gray-700', 'dark:hover:text-gray-100', 'hover:border-gray-300', 'dark:hover:border-gray-400');
-            });
-            
-            // Hide all tab contents
-            tabContents.forEach(content => {
-                content.classList.add('hidden');
-                content.classList.remove('block');
-            });
-            
-            // Activate the selected tab
-            this.classList.add('active', 'border-indigo-500', 'text-indigo-600', 'dark:text-indigo-400');
-            this.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-300', 'hover:text-gray-700', 'dark:hover:text-gray-100', 'hover:border-gray-300', 'dark:hover:border-gray-400');
-            
-            // Show the selected tab content
-            document.getElementById(targetId).classList.remove('hidden');
-            document.getElementById(targetId).classList.add('block');
-        });
-    });
-}
-
-/**
- * Setup export buttons functionality
- */
-function setupExportButtons() {
-    // Expense export button
-    const exportExpenseBtn = document.getElementById('exportExpenseBtn');
-    if (exportExpenseBtn) {
-        exportExpenseBtn.addEventListener('click', function() {
-            generatePDFReport('expense');
-        });
-    }
-    
-    // Petty Cash export button
-    const exportPettyCashBtn = document.getElementById('exportPettyCashBtn');
-    if (exportPettyCashBtn) {
-        exportPettyCashBtn.addEventListener('click', function() {
-            generatePDFReport('petty-cash');
-        });
-    }
-}
-
-/**
- * Generate PDF report for specified report type
- */
-function generatePDFReport(reportType) {
+function updateData() {
     const startDate = document.getElementById('start_date').value;
     const endDate = document.getElementById('end_date').value;
-    
-    // Validate date range
+
     if (!startDate || !endDate) {
         showErrorAlert('Please select both start and end dates.');
         return;
     }
-    
-    // Send request to server to generate PDF
-    fetch(`api/reports.php?action=generatePdf&type=${reportType}&start_date=${startDate}&end_date=${endDate}`, {
-        method: 'GET',
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        return response.blob();
-    })
-    .then(blob => {
-        // Create a URL for the blob
-        const url = window.URL.createObjectURL(blob);
-        
-        // Create a link element
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${reportType}_report_${startDate}_to_${endDate}.pdf`;
-        
-        // Append to the document body, click it, and remove it
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        // Show success message
-        showSuccessAlert(`${reportType.charAt(0).toUpperCase() + reportType.slice(1)} report has been downloaded.`);
-    })
-    .catch(error => {
-        console.error(`Error generating ${reportType} PDF:`, error);
-        
-        // For demo purposes, show success instead of error
-        simulateSuccessfulExport(reportType, startDate, endDate);
-    });
-}
 
-/**
- * Simulate successful PDF export (for demo purposes)
- */
-function simulateSuccessfulExport(reportType, startDate, endDate) {
-    // Format report type for display
-    let formattedType = reportType.replace('-', ' ');
-    formattedType = formattedType.charAt(0).toUpperCase() + formattedType.slice(1);
-    
-    // Show success message
-    showSuccessAlert(`${formattedType} report has been generated. In the live environment, this would download a PDF.`);
-}
-
-/**
- * Initialize success and error alerts
- */
-function initializeAlerts() {
-    const successAlert = document.getElementById('successAlert');
-    const errorAlert = document.getElementById('errorAlert');
-    
-    if (successAlert) {
-        successAlert.addEventListener('click', function() {
-            this.classList.add('hidden');
-        });
+    if (new Date(endDate) < new Date(startDate)) {
+        showErrorAlert('End date must be after start date.');
+        return;
     }
-    
-    if (errorAlert) {
-        errorAlert.addEventListener('click', function() {
-            this.classList.add('hidden');
-        });
-    }
+
+    // Reload page with new date parameters
+    window.location.href = `reports.php?start_date=${startDate}&end_date=${endDate}`;
 }
 
-/**
- * Show success alert with custom message
- */
+function generatePDFReport(reportType) {
+    const startDate = document.getElementById('start_date').value;
+    const endDate = document.getElementById('end_date').value;
+
+    if (!startDate || !endDate) {
+        showErrorAlert('Please select both start and end dates.');
+        return;
+    }
+
+    if (new Date(endDate) < new Date(startDate)) {
+        showErrorAlert('End date must be after start date.');
+        return;
+    }
+
+    // Show loading state
+    const button = reportType === 'expense' ? 
+        document.getElementById('exportExpenseBtn') : 
+        document.getElementById('exportPettyCashBtn');
+    const originalText = button.textContent;
+    button.textContent = 'Generating...';
+    button.disabled = true;
+
+    // First get the preview
+    fetch(`api/reports.php?action=getPreview&type=${reportType}&start_date=${startDate}&end_date=${endDate}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text().then(text => {
+                try {
+                    return JSON.parse(text);
+                } catch (e) {
+                    console.error('Failed to parse JSON:', text);
+                    throw new Error('Invalid JSON response from server');
+                }
+            });
+        })
+        .then(data => {
+            if (data.success) {
+                // Show preview section
+                const previewSection = document.getElementById('reportPreview');
+                const reportContent = document.getElementById('reportContent');
+                
+                // Update preview content
+                reportContent.innerHTML = data.html;
+                previewSection.classList.remove('hidden');
+                
+                // Scroll to preview
+                previewSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // Setup print button
+                document.getElementById('printReportBtn').onclick = () => {
+                    const printWindow = window.open('', '_blank');
+                    printWindow.document.write(`
+                        <html>
+                            <head>
+                                <title>Financial Report (${reportType.charAt(0).toUpperCase() + reportType.slice(1)})</title>
+                                <style>
+                                    body { 
+                                        font-family: Arial, sans-serif;
+                                        padding: 20px;
+                                    }
+                                    table { 
+                                        width: 100%;
+                                        border-collapse: collapse;
+                                        margin-top: 20px;
+                                    }
+                                    th, td { 
+                                        padding: 8px;
+                                        border: 1px solid #ddd;
+                                        text-align: left;
+                                    }
+                                    th { 
+                                        background-color: #f5f5f5;
+                                    }
+                                    h1 {
+                                        color: #333;
+                                        margin-bottom: 20px;
+                                    }
+                                    .total {
+                                        font-weight: bold;
+                                    }
+                                    @media print {
+                                        body { 
+                                            padding: 0;
+                                        }
+                                        button {
+                                            display: none;
+                                        }
+                                    }
+                                </style>
+                            </head>
+                            <body>
+                                <h1>${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Report</h1>
+                                <p>Period: ${new Date(startDate).toLocaleDateString()} - ${new Date(endDate).toLocaleDateString()}</p>
+                                ${data.html}
+                                <script>
+                                    window.onload = () => {
+                                        window.print();
+                                        setTimeout(() => window.close(), 500);
+                                    };
+                                </script>
+                            </body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                };
+
+                showSuccessAlert('Report preview generated successfully');
+            } else {
+                throw new Error(data.message || 'Failed to generate preview');
+            }
+        })
+        .catch(error => {
+            console.error('Error generating preview:', error);
+            showErrorAlert(error.message || 'Error generating preview. Please try again.');
+        })
+        .finally(() => {
+            button.textContent = originalText;
+            button.disabled = false;
+        });
+}
+
 function showSuccessAlert(message) {
-    const successAlert = document.getElementById('successAlert');
-    const successMessage = document.getElementById('successMessage');
-    
-    if (successAlert && successMessage) {
-        successMessage.textContent = message;
-        successAlert.classList.remove('hidden');
-        setTimeout(() => {
-            successAlert.classList.add('hidden');
-        }, 3000);
+    const alert = document.getElementById('successAlert');
+    const messageElement = document.getElementById('successMessage');
+    if (alert && messageElement) {
+        messageElement.textContent = message;
+        alert.classList.remove('hidden');
+        setTimeout(() => alert.classList.add('hidden'), 3000);
     }
 }
 
-/**
- * Show error alert with custom message
- */
 function showErrorAlert(message) {
-    const errorAlert = document.getElementById('errorAlert');
-    const errorMessage = document.getElementById('errorMessage');
-    
-    if (errorAlert && errorMessage) {
-        errorMessage.textContent = message;
-        errorAlert.classList.remove('hidden');
-        setTimeout(() => {
-            errorAlert.classList.add('hidden');
-        }, 5000);
+    const alert = document.getElementById('errorAlert');
+    const messageElement = document.getElementById('errorMessage');
+    if (alert && messageElement) {
+        messageElement.textContent = message;
+        alert.classList.remove('hidden');
+        setTimeout(() => alert.classList.add('hidden'), 5000);
     }
 }

@@ -277,6 +277,35 @@ function getPettyCashByDateRange($startDate, $endDate) {
     }
 }
 
+function deletePettyCash($id) {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->prepare("DELETE FROM petty_cash WHERE id = :id");
+        $stmt->bindParam(':id', $id);
+        return $stmt->execute();
+    } catch (PDOException $e) {
+        error_log('Error deleting petty cash: ' . $e->getMessage());
+        return false;
+    }
+}
+
+function updatePettyCash($id, $date, $title, $amount) {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->prepare("UPDATE petty_cash SET date = :date, title = :title, amount = :amount WHERE id = :id");
+        $stmt->bindParam(':id', $id);
+        $stmt->bindParam(':date', $date);
+        $stmt->bindParam(':title', $title);
+        $stmt->bindParam(':amount', $amount);
+        $stmt->execute();
+        
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        error_log('Error updating petty cash: ' . $e->getMessage());
+        return false;
+    }
+}
+
 // User functions
 function getAllUsers() {
     try {

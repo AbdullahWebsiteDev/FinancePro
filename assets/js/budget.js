@@ -103,12 +103,40 @@ function addBudgetToTable(budget) {
             ${budget.name}
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            $${budget.amount.toFixed(2)}
+            ₨${budget.amount.toFixed(2)}
         </td>
     `;
     
     // Insert at the beginning
     tableBody.insertBefore(newRow, tableBody.firstChild);
+}
+
+/**
+ * Update budget in the table
+ */
+function updateBudgetInTable(budget) {
+    const tableBody = document.getElementById('budgetTableBody');
+    if (!tableBody) {
+        return;
+    }
+
+    const rows = tableBody.querySelectorAll('tr');
+    for (const row of rows) {
+        if (row.dataset.id === budget.id.toString()) {
+            const dateObj = new Date(budget.date);
+            const formattedDate = dateObj.toLocaleDateString('en-US', {
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric'
+            });
+
+            const cells = row.querySelectorAll('td');
+            cells[0].textContent = formattedDate;
+            cells[1].textContent = budget.name;
+            cells[2].textContent = `₨${budget.amount.toFixed(2)}`;
+            break;
+        }
+    }
 }
 
 /**

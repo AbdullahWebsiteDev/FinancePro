@@ -5,6 +5,7 @@
 session_start();
 require_once '../includes/database.php';
 require_once '../includes/auth.php';
+require_once '../includes/budget_functions.php'; // Ensure this file contains the addBudget function
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {

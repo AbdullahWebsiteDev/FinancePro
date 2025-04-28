@@ -206,14 +206,14 @@ function addExpenseToTable(expense) {
     });
     
     newRow.innerHTML = `
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
             ${formattedDate}
         </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
             ${expense.item}
         </td>
-        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-            $${expense.cost.toFixed(2)}
+        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+            ₨${expense.cost.toFixed(2)}
         </td>
         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
             <button class="text-indigo-600 hover:text-indigo-900 mr-3 edit-btn" 
@@ -261,7 +261,7 @@ function updateExpenseInTable(expense) {
     const cells = row.querySelectorAll('td');
     cells[0].textContent = formattedDate;
     cells[1].textContent = expense.item;
-    cells[2].textContent = `$${expense.cost.toFixed(2)}`;
+    cells[2].textContent = `₨${expense.cost.toFixed(2)}`;
     
     // Update data attributes of edit button
     const editBtn = row.querySelector('.edit-btn');

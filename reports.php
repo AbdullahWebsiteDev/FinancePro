@@ -1,211 +1,94 @@
 <?php
 session_start();
 require_once 'includes/database.php';
-require_once 'includes/auth.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
-}
+// Get totals for each section
+$totalExpense = getTotalExpense();
+$totalPettyCash = getTotalPettyCash();
 
-// Default date range (current month)
-$startDate = date('Y-m-01');
-$endDate = date('Y-m-t');
+// Get date range
+$startDate = $_GET['start_date'] ?? date('Y-m-01');
+$endDate = $_GET['end_date'] ?? date('Y-m-t');
 
-// If date range is submitted
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $startDate = $_POST['start_date'] ?? date('Y-m-01');
-    $endDate = $_POST['end_date'] ?? date('Y-m-t');
-}
-
-// Get filtered data
-$expenses = getExpensesByDateRange($startDate, $endDate);
-$pettyCash = getPettyCashByDateRange($startDate, $endDate);
-
-// Calculate totals
-$totalExpense = 0;
-foreach ($expenses as $expense) {
-    $totalExpense += $expense['cost'];
-}
-
-$totalPettyCash = 0;
-foreach ($pettyCash as $record) {
-    $totalPettyCash += $record['amount'];
-}
-
-// Page title
 $pageTitle = "Financial Reports";
 ?>
 
 <?php include 'includes/header.php'; ?>
 
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">Financial Reports</h1>
-    <p class="text-gray-600 dark:text-gray-300">Generate and export financial reports</p>
-</div>
+<div class="container px-4 py-8 mx-auto">
+    <div class="mb-6">
+        <h1 class="mb-2 text-2xl font-bold text-gray-800 dark:text-white">Onscope Finance Reports</h1>
+        <p class="text-gray-600 dark:text-gray-300">Generate and export financial reports</p>
+    </div>
 
-<div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 mb-8">
-    <h2 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Filter Reports</h2>
-    <form method="POST" action="reports.php" class="space-y-4 md:space-y-0 md:flex md:space-x-4 items-end">
-        <div class="md:flex-1">
-            <label for="start_date" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Start Date</label>
-            <input type="date" id="start_date" name="start_date" value="<?php echo $startDate; ?>" required
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+    <!-- Date Filter -->
+    <div class="p-6 mb-8 bg-white rounded-lg shadow-md dark:bg-gray-700">
+        <h2 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Filter Reports</h2>
+        <div class="items-end space-y-4 md:space-y-0 md:flex md:space-x-4">
+            <div class="md:flex-1">
+                <label for="start_date" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">Start Date</label>
+                <input type="date" id="start_date" name="start_date" value="<?php echo $startDate; ?>" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+
+            <div class="md:flex-1">
+                <label for="end_date" class="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">End Date</label>
+                <input type="date" id="end_date" name="end_date" value="<?php echo $endDate; ?>"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
         </div>
-        
-        <div class="md:flex-1">
-            <label for="end_date" class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">End Date</label>
-            <input type="date" id="end_date" name="end_date" value="<?php echo $endDate; ?>" required
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-        </div>
-        
-        <div class="md:flex-none">
-            <button type="submit" 
-                class="w-full md:w-auto flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                Apply Filter
+    </div>
+
+    <!-- Report Sections -->
+    <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <!-- Expense Summary -->
+        <div class="p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
+            <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Expense Summary</h3>
+            <div class="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
+                ₨<?php echo number_format($totalExpense, 2); ?>
+            </div>
+            <p class="mb-4 text-gray-600 dark:text-gray-300">Total Expenses for selected period</p>
+            <button id="exportExpenseBtn" class="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                Export as PDF
             </button>
         </div>
-    </form>
-</div>
 
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-    <!-- Summary Cards -->
-    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 border-l-4 border-red-500">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Expense Summary</h3>
-        <p class="text-3xl font-bold text-gray-900 dark:text-white mb-2">$<?php echo number_format($totalExpense, 2); ?></p>
-        <p class="text-sm text-gray-500 dark:text-gray-300">Total Expenses for selected period</p>
-        <button id="exportExpenseBtn" class="mt-4 flex items-center text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
-            <i class="fas fa-file-pdf mr-1"></i>
-            <span>Export as PDF</span>
-        </button>
-    </div>
-    
-    <div class="bg-white dark:bg-gray-700 rounded-lg shadow-md p-6 border-l-4 border-green-500">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-2">Petty Cash Summary</h3>
-        <p class="text-3xl font-bold text-gray-900 dark:text-white mb-2">$<?php echo number_format($totalPettyCash, 2); ?></p>
-        <p class="text-sm text-gray-500 dark:text-gray-300">Total Petty Cash for selected period</p>
-        <button id="exportPettyCashBtn" class="mt-4 flex items-center text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
-            <i class="fas fa-file-pdf mr-1"></i>
-            <span>Export as PDF</span>
-        </button>
-    </div>
-</div>
-
-<!-- Detailed Reports Tabs -->
-<div class="bg-white dark:bg-gray-700 rounded-lg shadow-md mb-8">
-    <div class="border-b border-gray-200 dark:border-gray-600">
-        <nav class="-mb-px flex" aria-label="Tabs">
-            <button id="expenseTab" class="tab-button active border-indigo-500 text-indigo-600 dark:text-indigo-400 whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
-                Expenses
+        <!-- Petty Cash Summary -->
+        <div class="p-6 bg-white rounded-lg shadow-md dark:bg-gray-700">
+            <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white">Petty Cash Summary</h3>
+            <div class="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
+                ₨<?php echo number_format($totalPettyCash, 2); ?>
+            </div>
+            <p class="mb-4 text-gray-600 dark:text-gray-300">Total Petty Cash for selected period</p>
+            <button id="exportPettyCashBtn" class="w-full px-4 py-2 text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                Export as PDF
             </button>
-            <button id="pettyCashTab" class="tab-button border-transparent text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 hover:border-gray-300 dark:hover:border-gray-400 whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm">
-                Petty Cash
+        </div>
+    </div>
+
+    <!-- Report Preview Section -->
+    <div id="reportPreview" class="hidden p-6 mt-8 bg-white rounded-lg shadow-md dark:bg-gray-700">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 dark:text-white">Report Preview</h2>
+            <button id="printReportBtn" class="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
+                Print Report
             </button>
-        </nav>
+        </div>
+        <div id="reportContent" class="prose dark:prose-invert max-w-none">
+            <!-- Report content will be inserted here -->
+        </div>
     </div>
-    
-    <!-- Expense Report Tab -->
-    <div id="expenseTabContent" class="tab-content p-6 block">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Expense Report</h3>
-        <?php if (count($expenses) > 0): ?>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                    <thead class="bg-gray-50 dark:bg-gray-800">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Item</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Cost</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
-                        <?php foreach ($expenses as $expense): ?>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                <?php echo date('M d, Y', strtotime($expense['date'])); ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                <?php echo htmlspecialchars($expense['item']); ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                $<?php echo number_format($expense['cost'], 2); ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                        <tr class="bg-gray-50 dark:bg-gray-600">
-                            <td colspan="2" class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white text-right">
-                                Total:
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white">
-                                $<?php echo number_format($totalExpense, 2); ?>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <div class="text-center py-8">
-                <p class="text-gray-500 dark:text-gray-300 text-lg">No expense records found for this date range</p>
-            </div>
-        <?php endif; ?>
-    </div>
-    
-    <!-- Petty Cash Report Tab -->
-    <div id="pettyCashTabContent" class="tab-content p-6 hidden">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">Petty Cash Report</h3>
-        <?php if (count($pettyCash) > 0): ?>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
-                    <thead class="bg-gray-50 dark:bg-gray-800">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Title</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Amount</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-700 divide-y divide-gray-200 dark:divide-gray-600">
-                        <?php foreach ($pettyCash as $record): ?>
-                        <tr>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                <?php echo date('M d, Y', strtotime($record['date'])); ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                                <?php echo htmlspecialchars($record['title']); ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
-                                $<?php echo number_format($record['amount'], 2); ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                        <tr class="bg-gray-50 dark:bg-gray-600">
-                            <td colspan="2" class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white text-right">
-                                Total:
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 dark:text-white">
-                                $<?php echo number_format($totalPettyCash, 2); ?>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <div class="text-center py-8">
-                <p class="text-gray-500 dark:text-gray-300 text-lg">No petty cash records found for this date range</p>
-            </div>
-        <?php endif; ?>
-    </div>
-</div>
 
-<!-- Success Alert (Hidden by default) -->
-<div id="successAlert" class="fixed bottom-4 right-4 bg-green-100 dark:bg-green-900 border-l-4 border-green-500 text-green-700 dark:text-green-200 p-4 rounded shadow-md hidden" role="alert">
-    <p class="font-bold">Success!</p>
-    <p id="successMessage">PDF report has been generated and downloaded.</p>
-</div>
+    <!-- Alerts -->
+    <div id="successAlert" class="fixed hidden p-4 text-green-700 bg-green-100 border-l-4 border-green-500 rounded shadow-md bottom-4 right-4 dark:bg-green-900 dark:text-green-200" role="alert">
+        <p class="font-bold">Success!</p>
+        <p id="successMessage">PDF report has been generated and downloaded.</p>
+    </div>
 
-<!-- Error Alert (Hidden by default) -->
-<div id="errorAlert" class="fixed bottom-4 right-4 bg-red-100 dark:bg-red-900 border-l-4 border-red-500 text-red-700 dark:text-red-200 p-4 rounded shadow-md hidden" role="alert">
-    <p class="font-bold">Error!</p>
-    <p id="errorMessage">Something went wrong generating the PDF. Please try again.</p>
+    <div id="errorAlert" class="fixed hidden p-4 text-red-700 bg-red-100 border-l-4 border-red-500 rounded shadow-md bottom-4 right-4 dark:bg-red-900 dark:text-red-200" role="alert">
+        <p class="font-bold">Error!</p>
+        <p id="errorMessage">Something went wrong generating the PDF. Please try again.</p>
+    </div>
 </div>
 
 <?php include 'includes/footer.php'; ?>
